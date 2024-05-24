@@ -1,8 +1,10 @@
-import React from 'react';
-import useWindowWidth from '../hooks/useWindowWidth';
+import React, { useContext } from 'react';
+import DeviceWidthContext from '../context/deviceWidthontext';
 
+
+// eslint-disable-next-line react/prop-types
 export default function Container({ children }) {
-  const { isSmallerDevice } = useWindowWidth();
+  const isSmallerDevice = useContext(DeviceWidthContext);
   return (
     <div
       style={{

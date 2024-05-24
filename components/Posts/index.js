@@ -1,9 +1,10 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useContext } from 'react';
 import styled from '@emotion/styled';
 import Post from './Post';
 import Container from '../common/Container';
-import useWindowWidth from '../hooks/useWindowWidth';
+import DeviceWidthContext from '../context/deviceWidthontext';
+
 
 const PostListContainer = styled.div(() => ({
   display: 'flex',
@@ -35,40 +36,50 @@ const LoadMoreButton = styled.button(() => ({
 export default function Posts() {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [page,setPage] = useState(0)
+  const [noMoreContent,setNoMoreContent] = useState(false)
+  const isSmallerDevice = useContext(DeviceWidthContext)
 
-  const { isSmallerDevice } = useWindowWidth();
-
-  useEffect(() => {
-    const fetchPost = async () => {
-      const { data: posts } = await axios.get('/api/v1/posts', {
-        params: { start: 0, limit: isSmallerDevice ? 5 : 10 },
-      });
-      setPosts(posts);
-    };
-
-    fetchPost();
-  }, [isSmallerDevice]);
-
-  const handleClick = () => {
+  
+  const fetchPost = async () => {
     setIsLoading(true);
+    let limit = isSmallerDevice ? 5 : 10 ;
+    const { data: posts } = await axios.get('/api/v1/posts', {
+      params: { start: isSmallerDevice ? page*5 : page*10, limit:limit },
+    });
+    setIsLoading(false);
+    setPosts(previous=>[...previous,...posts]);
+    if(posts.length<limit){
+      setNoMoreContent(true)
+    }else{
+      setPage(page+1)
+    }
+  };
+  useEffect(() => {
+    fetchPost();
+  }, []);
 
+  const handleClick = async() => {
+    setIsLoading(true);
+    await fetchPost();
+    
     setTimeout(() => {
       setIsLoading(false);
-    }, 3000);
+    }, 2000);
   };
 
   return (
     <Container>
       <PostListContainer>
-        {posts.map(post => (
-          <Post post={post} />
+        {posts.map((post,index) => (
+          <Post key={index} post={post} />
         ))}
       </PostListContainer>
 
       <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <LoadMoreButton onClick={handleClick} disabled={isLoading}>
+        {!noMoreContent && <LoadMoreButton onClick={handleClick} disabled={isLoading}>
           {!isLoading ? 'Load More' : 'Loading...'}
-        </LoadMoreButton>
+        </LoadMoreButton>}
       </div>
     </Container>
   );
