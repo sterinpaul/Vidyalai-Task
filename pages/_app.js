@@ -1,8 +1,12 @@
 import React from 'react';
+import { DeviceWidthProvider } from '../components/context/deviceWidthontext';
+
 
 const App = ({ Component, pageProps }) => (
   <React.Fragment>
-    <Component {...pageProps} />
+    <DeviceWidthProvider>
+      <Component {...pageProps} />
+    </DeviceWidthProvider>
   </React.Fragment>
 );
 
